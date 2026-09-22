@@ -18,12 +18,14 @@ local Window = Library:CreateWindow({
 	-- Search = true, -- opt-in filter box at the top of the content area
 })
 
--- Sidebar tabs (first letter becomes the icon; pass Icon = "R" to override)
+-- Sidebar tabs with real Lucide image icons.
+-- rage/antiaim/legit/visuals/misc/settings map automatically;
+-- pass any Icons key (or raw rbxassetid) via Icon = "..." to override.
 local rage = Window:CreateTab({ Name = "rage" })
 local antiaim = Window:CreateTab({ Name = "antiaim" })
 local legit = Window:CreateTab({ Name = "legit" })
 local visuals = Window:CreateTab({ Name = "visuals" })
-local misc = Window:CreateTab({ Name = "misc" })
+local misc = Window:CreateTab({ Name = "misc", Icon = "zap" })
 local settings = Window:CreateTab({ Name = "settings" })
 
 -- RAGE: mirrors the reference panel (checkboxes, slider, combo, button)

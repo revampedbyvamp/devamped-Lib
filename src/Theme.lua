@@ -5,6 +5,24 @@
 
 local Theme = {}
 
+local function pickFont(...)
+	local byName = {}
+	pcall(function()
+		for _, e in ipairs(Enum.Font:GetEnumItems()) do
+			byName[e.Name] = e
+		end
+	end)
+	for _, name in ipairs({ ... }) do
+		if byName[name] then
+			return byName[name]
+		end
+	end
+	return Enum.Font.Gotham
+end
+
+local BodyFont = pickFont("MontserratMedium", "GothamMedium", "Gotham")
+local BoldFont = pickFont("MontserratBold", "GothamBold", "Gotham")
+
 Theme.Luminate = {
 	Name = "Luminate",
 	Accent = Color3.fromRGB(255, 255, 255),
@@ -21,8 +39,8 @@ Theme.Luminate = {
 	Success = Color3.fromRGB(74, 200, 128),
 	Danger = Color3.fromRGB(240, 90, 105),
 	Shadow = Color3.fromRGB(0, 0, 0),
-	Font = Enum.Font.GothamMedium,
-	FontBold = Enum.Font.GothamBold,
+	Font = BodyFont,
+	FontBold = BoldFont,
 	CornerRadius = UDim.new(0, 8),
 	SmallCornerRadius = UDim.new(0, 6),
 }
@@ -43,8 +61,8 @@ Theme.Light = {
 	Success = Color3.fromRGB(57, 164, 103),
 	Danger = Color3.fromRGB(214, 75, 91),
 	Shadow = Color3.fromRGB(30, 22, 56),
-	Font = Enum.Font.Gotham,
-	FontBold = Enum.Font.GothamSemibold,
+	Font = BodyFont,
+	FontBold = BoldFont,
 	CornerRadius = UDim.new(0, 12),
 	SmallCornerRadius = UDim.new(0, 8),
 }
@@ -65,8 +83,8 @@ Theme.Dark = {
 	Success = Color3.fromRGB(74, 200, 128),
 	Danger = Color3.fromRGB(240, 90, 105),
 	Shadow = Color3.fromRGB(0, 0, 0),
-	Font = Enum.Font.Gotham,
-	FontBold = Enum.Font.GothamSemibold,
+	Font = BodyFont,
+	FontBold = BoldFont,
 	CornerRadius = UDim.new(0, 12),
 	SmallCornerRadius = UDim.new(0, 8),
 }

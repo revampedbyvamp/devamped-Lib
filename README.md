@@ -46,6 +46,7 @@ See `Example.lua` for the full demo.
 
 - `src/Theme.lua` — Luminate (default) / Light / Dark + `Theme.Create(nameOrTable)`
 - `src/Animation.lua` — Tween, hover, press, fade, slide, spring, ripple
+- `src/Icons.lua` — Lucide image icons (crosshair, shield, eye, grid, gear, cart, search, chevron, check...). `Icon = "zap"` on any tab, or a raw `rbxassetid://` string
 - `src/Components.lua` — groupbox panel, button, toggle, checkbox, slider, dropdown/combo, textbox, keybind, color picker, label, section, column, tooltip
 - `src/Library.lua` — `CreateWindow`, sidebar tabs, panels, notifications, drag/resize, responsive scale, config store
 - `src/Init.lua` — Studio entry point

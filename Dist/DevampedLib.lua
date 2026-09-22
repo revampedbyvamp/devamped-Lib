@@ -9,6 +9,24 @@ do
 
 local Theme = {}
 
+local function pickFont(...)
+	local byName = {}
+	pcall(function()
+		for _, e in ipairs(Enum.Font:GetEnumItems()) do
+			byName[e.Name] = e
+		end
+	end)
+	for _, name in ipairs({ ... }) do
+		if byName[name] then
+			return byName[name]
+		end
+	end
+	return Enum.Font.Gotham
+end
+
+local BodyFont = pickFont("MontserratMedium", "GothamMedium", "Gotham")
+local BoldFont = pickFont("MontserratBold", "GothamBold", "Gotham")
+
 Theme.Luminate = {
 	Name = "Luminate",
 	Accent = Color3.fromRGB(255, 255, 255),
@@ -25,8 +43,8 @@ Theme.Luminate = {
 	Success = Color3.fromRGB(74, 200, 128),
 	Danger = Color3.fromRGB(240, 90, 105),
 	Shadow = Color3.fromRGB(0, 0, 0),
-	Font = Enum.Font.GothamMedium,
-	FontBold = Enum.Font.GothamBold,
+	Font = BodyFont,
+	FontBold = BoldFont,
 	CornerRadius = UDim.new(0, 8),
 	SmallCornerRadius = UDim.new(0, 6),
 }
@@ -47,8 +65,8 @@ Theme.Light = {
 	Success = Color3.fromRGB(57, 164, 103),
 	Danger = Color3.fromRGB(214, 75, 91),
 	Shadow = Color3.fromRGB(30, 22, 56),
-	Font = Enum.Font.Gotham,
-	FontBold = Enum.Font.GothamSemibold,
+	Font = BodyFont,
+	FontBold = BoldFont,
 	CornerRadius = UDim.new(0, 12),
 	SmallCornerRadius = UDim.new(0, 8),
 }
@@ -69,8 +87,8 @@ Theme.Dark = {
 	Success = Color3.fromRGB(74, 200, 128),
 	Danger = Color3.fromRGB(240, 90, 105),
 	Shadow = Color3.fromRGB(0, 0, 0),
-	Font = Enum.Font.Gotham,
-	FontBold = Enum.Font.GothamSemibold,
+	Font = BodyFont,
+	FontBold = BoldFont,
 	CornerRadius = UDim.new(0, 12),
 	SmallCornerRadius = UDim.new(0, 8),
 }
@@ -251,6 +269,101 @@ _G.__DL_Animation = Animation
 end
 local Animation = _G.__DL_Animation
 do
+-- DevampedLib Icons module
+-- Lucide glyphs served from public Roblox atlas sheets. Rects verified
+-- against each sheet's thumbnail (glyph renders white on transparency,
+-- tint it with ImageColor3). Rect data layout matches the public
+-- Rayfield icons.lua atlas, which these sheets belong to.
+-- Usage: Icons.Apply(imageLabel, "crosshair", theme.TextMuted)
+
+Icons = {}
+
+-- name -> { imageAssetId, rectX, rectY, cellSize }
+Icons.Map = {
+	["crosshair"] = { 16898668482, 514, 257, 256 },
+	["person-standing"] = { 16898731539, 257, 257 },
+	["shield"] = { 16898734664, 257, 0 },
+	["eye"] = { 16898669897, 0, 0 },
+	["layout-grid"] = { 16898674182, 514, 0 },
+	["settings"] = { 16898734421, 514, 0 },
+	["shopping-cart"] = { 16898734664, 257, 514 },
+	["cookie"] = { 16898619423, 0, 0 },
+	["search"] = { 16898734242, 257, 0 },
+	["chevron-down"] = { 16898617411, 257, 0 },
+	["check"] = { 16898612819, 710, 869, 48 },
+	["x"] = { 16898791349, 257, 0 },
+	["minus"] = { 16898728878, 514, 0 },
+	["circle"] = { 16898618049, 257, 514 },
+	["zap"] = { 16898791349, 257, 257 },
+	["target"] = { 16898788248, 257, 0 },
+	["user"] = { 16898790259, 0, 0 },
+	["wrench"] = { 16898791187, 514, 257 },
+}
+
+-- default sidebar glyph per tab name (lowercase lookup)
+Icons.TabDefaults = {
+	rage = "crosshair",
+	antiaim = "person-standing",
+	legit = "shield",
+	visuals = "eye",
+	misc = "layout-grid",
+	settings = "settings",
+}
+
+function Icons.Resolve(name)
+	local entry = Icons.Map[name]
+	if not entry then
+		return nil
+	end
+	local size = entry[4] or 256
+	return ("rbxassetid://%d"):format(entry[1]),
+		Vector2.new(entry[2], entry[3]),
+		Vector2.new(size, size)
+end
+
+-- Applies a glyph to an ImageLabel. Accepts an Icons key or a raw
+-- rbxassetid string (used as-is, full image, no rect).
+function Icons.Apply(imageLabel, name, tint)
+	if typeof(imageLabel) ~= "Instance" or not imageLabel:IsA("ImageLabel") then
+		return false
+	end
+	if type(name) == "string" and string.sub(name, 1, 11) == "rbxassetid://" then
+		imageLabel.Image = name
+		imageLabel.ImageRectOffset = Vector2.new(0, 0)
+		imageLabel.ImageRectSize = Vector2.new(0, 0)
+		imageLabel.ScaleType = Enum.ScaleType.Fit
+		imageLabel.BackgroundTransparency = 1
+		if tint then
+			imageLabel.ImageColor3 = tint
+		end
+		return true
+	end
+	local image, offset, size = Icons.Resolve(name)
+	if not image then
+		return false
+	end
+	imageLabel.Image = image
+	imageLabel.ImageRectOffset = offset
+	imageLabel.ImageRectSize = size
+	imageLabel.ScaleType = Enum.ScaleType.Fit
+	imageLabel.BackgroundTransparency = 1
+	if tint then
+		imageLabel.ImageColor3 = tint
+	end
+	return true
+end
+
+function Icons.ForTab(tabName, custom)
+	if custom and (Icons.Map[custom] or string.sub(custom, 1, 11) == "rbxassetid://") then
+		return custom
+	end
+	return Icons.TabDefaults[string.lower(tabName or "")] or "circle"
+end
+
+_G.__DL_Icons = Icons
+end
+local Icons = _G.__DL_Icons
+do
 -- DevampedLib Components module
 -- Monochrome "luminate" styling: square checkboxes, thin sliders,
 -- combo fields with white-highlight dropdowns, full-width buttons.
@@ -259,6 +372,14 @@ do
 local UserInputService = game:GetService("UserInputService")
 
 Components = {}
+
+-- Icons is shared via _G in the single-file bundle, otherwise required.
+local Icons = _G.__DL_Icons
+if not Icons then
+	pcall(function()
+		Icons = require(script.Parent.Icons)
+	end)
+end
 
 local function create(className, properties, parent)
 	local object = Instance.new(className)
@@ -372,6 +493,7 @@ function Components.Groupbox(context, parent, title, order)
 		ClipsDescendants = false,
 	}, parent))
 	corner(panel, theme.CornerRadius)
+	stroke(panel, theme.Border, 0.55)
 	create("UIPadding", {
 		PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12),
 		PaddingTop = UDim.new(0, 10), PaddingBottom = UDim.new(0, 10),
@@ -547,19 +669,38 @@ function Components.Checkbox(context, parent, title, defaultValue, callback, ord
 		Position = UDim2.fromOffset(0, 5),
 	}, button)
 	corner(box, UDim.new(0, 4))
-	local mark = text(box, "✓", {
-		Color = Color3.fromRGB(10, 10, 12), Font = theme.FontBold, Size = 11,
-		XAlignment = Enum.TextXAlignment.Center, Size2 = UDim2.fromScale(1, 1),
-	}, theme)
+	local mark = create("ImageLabel", {
+		BackgroundTransparency = 1,
+		Image = (Icons and Icons.Resolve("check")) or "",
+		ImageColor3 = Color3.fromRGB(10, 10, 12),
+		ScaleType = Enum.ScaleType.Fit,
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Size = UDim2.fromOffset(10, 10),
+		Position = UDim2.fromScale(0.5, 0.5),
+	}, box)
+	if Icons then
+		Icons.Apply(mark, "check", Color3.fromRGB(10, 10, 12))
+	else
+		mark:Destroy()
+		mark = text(box, "✓", {
+			Color = Color3.fromRGB(10, 10, 12), Font = theme.FontBold, Size = 11,
+			XAlignment = Enum.TextXAlignment.Center, Size2 = UDim2.fromScale(1, 1),
+		}, theme)
+	end
 	text(button, title or "Checkbox", {
 		Color = theme.TextMuted, Size = 11,
 		Position = UDim2.fromOffset(22, 0), Height = 24,
 		Size2 = UDim2.new(1, -22, 0, 24),
 	}, theme)
 	local value = defaultValue == true
+	local markIsImage = mark:IsA("ImageLabel")
 	local function paint()
 		box.BackgroundColor3 = value and Color3.new(1, 1, 1) or theme.SurfaceMuted
-		mark.TextTransparency = value and 0 or 1
+		if markIsImage then
+			mark.ImageTransparency = value and 0 or 1
+		else
+			mark.TextTransparency = value and 0 or 1
+		end
 	end
 	paint()
 	button.MouseButton1Click:Connect(function()
@@ -714,12 +855,26 @@ function Components.Dropdown(context, parent, title, items, defaultValue, callba
 		Position = UDim2.fromOffset(10, 0), Height = 26,
 		Size2 = UDim2.new(1, -38, 0, 26),
 	}, theme)
-	text(box, "∨", {
-		Color = theme.TextMuted, Size = 12,
-		XAlignment = Enum.TextXAlignment.Right,
-		Position = UDim2.new(1, -26, 0, 0), Height = 26,
-		Size2 = UDim2.new(0, 16, 0, 26),
-	}, theme)
+	local chevron = create("ImageLabel", {
+		BackgroundTransparency = 1,
+		Image = (Icons and Icons.Resolve("chevron-down")) or "",
+		ImageColor3 = theme.TextMuted,
+		ScaleType = Enum.ScaleType.Fit,
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Size = UDim2.fromOffset(13, 13),
+		Position = UDim2.new(1, -17, 0.5, 0),
+	}, box)
+	if Icons then
+		Icons.Apply(chevron, "chevron-down", theme.TextMuted)
+	else
+		chevron:Destroy()
+		chevron = text(box, "∨", {
+			Color = theme.TextMuted, Size = 12,
+			XAlignment = Enum.TextXAlignment.Right,
+			Position = UDim2.new(1, -26, 0, 0), Height = 26,
+			Size2 = UDim2.new(0, 16, 0, 26),
+		}, theme)
+	end
 	local list = create("Frame", {
 		Visible = false,
 		BackgroundColor3 = theme.SurfaceMuted,
@@ -747,6 +902,9 @@ function Components.Dropdown(context, parent, title, items, defaultValue, callba
 	local function setOpen(next)
 		open = next
 		list.Visible = next
+		if chevron:IsA("ImageLabel") then
+			chevron.Rotation = next and 180 or 0
+		end
 		if next then
 			paint()
 		end
@@ -1079,6 +1237,7 @@ local Library = {
 	Theme = Theme,
 	Animation = Animation,
 	Components = Components,
+	Icons = Icons,
 	Windows = {},
 	Flags = {},
 }
@@ -1242,6 +1401,7 @@ function Library:CreateWindow(options)
 		Active = true,
 	}, root)
 	corner(window, UDim.new(0, 10))
+	create("UIStroke", { Color = theme.Border, Transparency = 0.35, Thickness = 1 }, window)
 
 	-- ============ SIDEBAR ============
 	local sidebar = create("Frame", {
@@ -1275,12 +1435,12 @@ function Library:CreateWindow(options)
 	}, sidePad)
 
 	-- logo
-	local logoBox = create("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 96), LayoutOrder = 0 }, sidePad)
-	buildLogo(logoBox, theme, 52).Position = UDim2.new(0.5, -26, 0, 0)
+	local logoBox = create("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 100), LayoutOrder = 0 }, sidePad)
+	buildLogo(logoBox, theme, 56).Position = UDim2.new(0.5, -28, 0, 0)
 	text(logoBox, brand, {
-		Color = theme.Text, Font = theme.Font, Size = 20,
+		Color = theme.Text, Font = theme.Font, Size = 21,
 		XAlignment = Enum.TextXAlignment.Center,
-		Position = UDim2.fromOffset(0, 52), Height = 30,
+		Position = UDim2.fromOffset(0, 56), Height = 30,
 		Size2 = UDim2.new(1, 0, 0, 30),
 	}, theme)
 
@@ -1290,9 +1450,19 @@ function Library:CreateWindow(options)
 
 	-- footer
 	local footer = create("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 30), LayoutOrder = 2 }, sidePad)
-	text(footer, "◈", { Color = theme.TextFaint, Size = 13, Position = UDim2.fromOffset(2, 0), Height = 30, Size2 = UDim2.fromOffset(20, 30) }, theme)
-	text(footer, footerText, { Color = theme.TextMuted, Size = 11, Position = UDim2.fromOffset(26, 0), Height = 30, Size2 = UDim2.new(1, -52, 0, 30) }, theme)
-	text(footer, "◐", { Color = theme.TextFaint, Size = 13, XAlignment = Enum.TextXAlignment.Right, Position = UDim2.new(1, -22, 0, 0), Height = 30, Size2 = UDim2.fromOffset(22, 30) }, theme)
+	local cartIcon = create("ImageLabel", {
+		BackgroundTransparency = 1,
+		Size = UDim2.fromOffset(15, 15),
+		Position = UDim2.fromOffset(2, 7),
+	}, footer)
+	Icons.Apply(cartIcon, "shopping-cart", theme.TextFaint)
+	text(footer, footerText, { Color = theme.TextMuted, Size = 11, Position = UDim2.fromOffset(24, 0), Height = 30, Size2 = UDim2.new(1, -50, 0, 30) }, theme)
+	local cookieIcon = create("ImageLabel", {
+		BackgroundTransparency = 1,
+		Size = UDim2.fromOffset(14, 14),
+		Position = UDim2.new(1, -18, 0, 8),
+	}, footer)
+	Icons.Apply(cookieIcon, "cookie", theme.TextFaint)
 
 	-- ============ CONTENT ============
 	local content = create("Frame", {
@@ -1321,7 +1491,13 @@ function Library:CreateWindow(options)
 			Size = UDim2.new(1, 0, 0, 28),
 		}, content)
 		corner(searchBox, theme.SmallCornerRadius)
-		create("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10) }, searchBox)
+		create("UIPadding", { PaddingLeft = UDim.new(0, 32), PaddingRight = UDim.new(0, 10) }, searchBox)
+		local searchIcon = create("ImageLabel", {
+			BackgroundTransparency = 1,
+			Size = UDim2.fromOffset(14, 14),
+			Position = UDim2.fromOffset(9, 7),
+		}, searchBox)
+		Icons.Apply(searchIcon, "search", theme.TextFaint)
 	end
 
 	local pages = create("Frame", {
@@ -1373,6 +1549,9 @@ function Library:CreateWindow(options)
 			item.NameLabel.TextColor3 = active and theme.Text or theme.TextMuted
 			item.IconBox.BackgroundColor3 = active and theme.SurfaceMuted or theme.Sidebar
 			item.IconBox.BackgroundTransparency = active and 0 or 1
+			if item.Icon then
+				item.Icon.ImageColor3 = active and theme.Text or theme.TextMuted
+			end
 			item.Page.Visible = active
 		end
 	end
@@ -1380,32 +1559,47 @@ function Library:CreateWindow(options)
 	function api:CreateTab(tabOptions)
 		tabOptions = tabOptions or {}
 		local tabName = tabOptions.Name or tabOptions.Title or ("tab" .. (#tabs + 1))
-		local glyph = tabOptions.Icon or string.upper(string.sub(tabName, 1, 1))
+		local iconName = Icons.ForTab(tabName, tabOptions.Icon)
 
 		local button = create("TextButton", {
 			AutoButtonColor = false,
 			BackgroundTransparency = 1,
 			Text = "",
-			Size = UDim2.new(1, 0, 0, 32),
+			Size = UDim2.new(1, 0, 0, 34),
 			LayoutOrder = #tabs,
 		}, nav)
 		local iconBox = create("Frame", {
-			BackgroundColor3 = theme.Sidebar,
+			BackgroundColor3 = theme.SurfaceMuted,
 			BackgroundTransparency = 1,
 			BorderSizePixel = 0,
 			Size = UDim2.fromOffset(24, 24),
-			Position = UDim2.fromOffset(4, 4),
+			Position = UDim2.fromOffset(4, 5),
 		}, button)
 		corner(iconBox, UDim.new(0, 6))
-		text(iconBox, glyph, {
-			Color = theme.TextMuted, Size = 11, Font = theme.Font,
-			XAlignment = Enum.TextXAlignment.Center, Size2 = UDim2.fromScale(1, 1),
-		}, theme)
+		local iconImage = create("ImageLabel", {
+			BackgroundTransparency = 1,
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Size = UDim2.fromOffset(15, 15),
+			Position = UDim2.fromScale(0.5, 0.5),
+		}, iconBox)
+		Icons.Apply(iconImage, iconName, theme.TextMuted)
 		local nameLabel = text(button, tabName, {
 			Color = theme.TextMuted, Size = 13, Font = theme.Font,
-			Position = UDim2.fromOffset(36, 0), Height = 32,
-			Size2 = UDim2.new(1, -40, 0, 32),
+			Position = UDim2.fromOffset(36, 0), Height = 34,
+			Size2 = UDim2.new(1, -40, 0, 34),
 		}, theme)
+		button.MouseEnter:Connect(function()
+			if currentTab and currentTab.Name == tabName then
+				return
+			end
+			nameLabel.TextColor3 = theme.Text
+		end)
+		button.MouseLeave:Connect(function()
+			if currentTab and currentTab.Name == tabName then
+				return
+			end
+			nameLabel.TextColor3 = theme.TextMuted
+		end)
 
 		local page = create("Frame", { BackgroundTransparency = 1, Visible = false, Size = UDim2.new(1, 0, 1, 0) }, pages)
 		local columns = create("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0) }, page)
@@ -1416,7 +1610,7 @@ function Library:CreateWindow(options)
 			Padding = UDim.new(0, 8),
 		}, columns)
 
-		local tab = { Name = tabName, Button = button, IconBox = iconBox, NameLabel = nameLabel, Page = page, Columns = columns, _searchables = {}, _defaultColumn = nil }
+		local tab = { Name = tabName, Button = button, IconBox = iconBox, Icon = iconImage, NameLabel = nameLabel, Page = page, Columns = columns, _searchables = {}, _defaultColumn = nil }
 
 		local function defaultColumn()
 			if not tab._defaultColumn or not tab._defaultColumn.Parent then

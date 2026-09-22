@@ -14,11 +14,13 @@ local HttpService = game:GetService("HttpService")
 local Theme = require(script.Parent.Theme)
 local Animation = require(script.Parent.Animation)
 local Components = require(script.Parent.Components)
+local Icons = require(script.Parent.Icons)
 
 local Library = {
 	Theme = Theme,
 	Animation = Animation,
 	Components = Components,
+	Icons = Icons,
 	Windows = {},
 	Flags = {},
 }
@@ -182,6 +184,7 @@ function Library:CreateWindow(options)
 		Active = true,
 	}, root)
 	corner(window, UDim.new(0, 10))
+	create("UIStroke", { Color = theme.Border, Transparency = 0.35, Thickness = 1 }, window)
 
 	-- ============ SIDEBAR ============
 	local sidebar = create("Frame", {
@@ -215,12 +218,12 @@ function Library:CreateWindow(options)
 	}, sidePad)
 
 	-- logo
-	local logoBox = create("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 96), LayoutOrder = 0 }, sidePad)
-	buildLogo(logoBox, theme, 52).Position = UDim2.new(0.5, -26, 0, 0)
+	local logoBox = create("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 100), LayoutOrder = 0 }, sidePad)
+	buildLogo(logoBox, theme, 56).Position = UDim2.new(0.5, -28, 0, 0)
 	text(logoBox, brand, {
-		Color = theme.Text, Font = theme.Font, Size = 20,
+		Color = theme.Text, Font = theme.Font, Size = 21,
 		XAlignment = Enum.TextXAlignment.Center,
-		Position = UDim2.fromOffset(0, 52), Height = 30,
+		Position = UDim2.fromOffset(0, 56), Height = 30,
 		Size2 = UDim2.new(1, 0, 0, 30),
 	}, theme)
 
@@ -230,9 +233,19 @@ function Library:CreateWindow(options)
 
 	-- footer
 	local footer = create("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 30), LayoutOrder = 2 }, sidePad)
-	text(footer, "◈", { Color = theme.TextFaint, Size = 13, Position = UDim2.fromOffset(2, 0), Height = 30, Size2 = UDim2.fromOffset(20, 30) }, theme)
-	text(footer, footerText, { Color = theme.TextMuted, Size = 11, Position = UDim2.fromOffset(26, 0), Height = 30, Size2 = UDim2.new(1, -52, 0, 30) }, theme)
-	text(footer, "◐", { Color = theme.TextFaint, Size = 13, XAlignment = Enum.TextXAlignment.Right, Position = UDim2.new(1, -22, 0, 0), Height = 30, Size2 = UDim2.fromOffset(22, 30) }, theme)
+	local cartIcon = create("ImageLabel", {
+		BackgroundTransparency = 1,
+		Size = UDim2.fromOffset(15, 15),
+		Position = UDim2.fromOffset(2, 7),
+	}, footer)
+	Icons.Apply(cartIcon, "shopping-cart", theme.TextFaint)
+	text(footer, footerText, { Color = theme.TextMuted, Size = 11, Position = UDim2.fromOffset(24, 0), Height = 30, Size2 = UDim2.new(1, -50, 0, 30) }, theme)
+	local cookieIcon = create("ImageLabel", {
+		BackgroundTransparency = 1,
+		Size = UDim2.fromOffset(14, 14),
+		Position = UDim2.new(1, -18, 0, 8),
+	}, footer)
+	Icons.Apply(cookieIcon, "cookie", theme.TextFaint)
 
 	-- ============ CONTENT ============
 	local content = create("Frame", {
@@ -261,7 +274,13 @@ function Library:CreateWindow(options)
 			Size = UDim2.new(1, 0, 0, 28),
 		}, content)
 		corner(searchBox, theme.SmallCornerRadius)
-		create("UIPadding", { PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10) }, searchBox)
+		create("UIPadding", { PaddingLeft = UDim.new(0, 32), PaddingRight = UDim.new(0, 10) }, searchBox)
+		local searchIcon = create("ImageLabel", {
+			BackgroundTransparency = 1,
+			Size = UDim2.fromOffset(14, 14),
+			Position = UDim2.fromOffset(9, 7),
+		}, searchBox)
+		Icons.Apply(searchIcon, "search", theme.TextFaint)
 	end
 
 	local pages = create("Frame", {
@@ -313,6 +332,9 @@ function Library:CreateWindow(options)
 			item.NameLabel.TextColor3 = active and theme.Text or theme.TextMuted
 			item.IconBox.BackgroundColor3 = active and theme.SurfaceMuted or theme.Sidebar
 			item.IconBox.BackgroundTransparency = active and 0 or 1
+			if item.Icon then
+				item.Icon.ImageColor3 = active and theme.Text or theme.TextMuted
+			end
 			item.Page.Visible = active
 		end
 	end
@@ -320,32 +342,47 @@ function Library:CreateWindow(options)
 	function api:CreateTab(tabOptions)
 		tabOptions = tabOptions or {}
 		local tabName = tabOptions.Name or tabOptions.Title or ("tab" .. (#tabs + 1))
-		local glyph = tabOptions.Icon or string.upper(string.sub(tabName, 1, 1))
+		local iconName = Icons.ForTab(tabName, tabOptions.Icon)
 
 		local button = create("TextButton", {
 			AutoButtonColor = false,
 			BackgroundTransparency = 1,
 			Text = "",
-			Size = UDim2.new(1, 0, 0, 32),
+			Size = UDim2.new(1, 0, 0, 34),
 			LayoutOrder = #tabs,
 		}, nav)
 		local iconBox = create("Frame", {
-			BackgroundColor3 = theme.Sidebar,
+			BackgroundColor3 = theme.SurfaceMuted,
 			BackgroundTransparency = 1,
 			BorderSizePixel = 0,
 			Size = UDim2.fromOffset(24, 24),
-			Position = UDim2.fromOffset(4, 4),
+			Position = UDim2.fromOffset(4, 5),
 		}, button)
 		corner(iconBox, UDim.new(0, 6))
-		text(iconBox, glyph, {
-			Color = theme.TextMuted, Size = 11, Font = theme.Font,
-			XAlignment = Enum.TextXAlignment.Center, Size2 = UDim2.fromScale(1, 1),
-		}, theme)
+		local iconImage = create("ImageLabel", {
+			BackgroundTransparency = 1,
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Size = UDim2.fromOffset(15, 15),
+			Position = UDim2.fromScale(0.5, 0.5),
+		}, iconBox)
+		Icons.Apply(iconImage, iconName, theme.TextMuted)
 		local nameLabel = text(button, tabName, {
 			Color = theme.TextMuted, Size = 13, Font = theme.Font,
-			Position = UDim2.fromOffset(36, 0), Height = 32,
-			Size2 = UDim2.new(1, -40, 0, 32),
+			Position = UDim2.fromOffset(36, 0), Height = 34,
+			Size2 = UDim2.new(1, -40, 0, 34),
 		}, theme)
+		button.MouseEnter:Connect(function()
+			if currentTab and currentTab.Name == tabName then
+				return
+			end
+			nameLabel.TextColor3 = theme.Text
+		end)
+		button.MouseLeave:Connect(function()
+			if currentTab and currentTab.Name == tabName then
+				return
+			end
+			nameLabel.TextColor3 = theme.TextMuted
+		end)
 
 		local page = create("Frame", { BackgroundTransparency = 1, Visible = false, Size = UDim2.new(1, 0, 1, 0) }, pages)
 		local columns = create("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0) }, page)
@@ -356,7 +393,7 @@ function Library:CreateWindow(options)
 			Padding = UDim.new(0, 8),
 		}, columns)
 
-		local tab = { Name = tabName, Button = button, IconBox = iconBox, NameLabel = nameLabel, Page = page, Columns = columns, _searchables = {}, _defaultColumn = nil }
+		local tab = { Name = tabName, Button = button, IconBox = iconBox, Icon = iconImage, NameLabel = nameLabel, Page = page, Columns = columns, _searchables = {}, _defaultColumn = nil }
 
 		local function defaultColumn()
 			if not tab._defaultColumn or not tab._defaultColumn.Parent then

@@ -7,6 +7,14 @@ local UserInputService = game:GetService("UserInputService")
 
 local Components = {}
 
+-- Icons is shared via _G in the single-file bundle, otherwise required.
+local Icons = _G.__DL_Icons
+if not Icons then
+	pcall(function()
+		Icons = require(script.Parent.Icons)
+	end)
+end
+
 local function create(className, properties, parent)
 	local object = Instance.new(className)
 	for key, value in pairs(properties or {}) do
@@ -119,6 +127,7 @@ function Components.Groupbox(context, parent, title, order)
 		ClipsDescendants = false,
 	}, parent))
 	corner(panel, theme.CornerRadius)
+	stroke(panel, theme.Border, 0.55)
 	create("UIPadding", {
 		PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 12),
 		PaddingTop = UDim.new(0, 10), PaddingBottom = UDim.new(0, 10),
@@ -294,19 +303,38 @@ function Components.Checkbox(context, parent, title, defaultValue, callback, ord
 		Position = UDim2.fromOffset(0, 5),
 	}, button)
 	corner(box, UDim.new(0, 4))
-	local mark = text(box, "✓", {
-		Color = Color3.fromRGB(10, 10, 12), Font = theme.FontBold, Size = 11,
-		XAlignment = Enum.TextXAlignment.Center, Size2 = UDim2.fromScale(1, 1),
-	}, theme)
+	local mark = create("ImageLabel", {
+		BackgroundTransparency = 1,
+		Image = (Icons and Icons.Resolve("check")) or "",
+		ImageColor3 = Color3.fromRGB(10, 10, 12),
+		ScaleType = Enum.ScaleType.Fit,
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Size = UDim2.fromOffset(10, 10),
+		Position = UDim2.fromScale(0.5, 0.5),
+	}, box)
+	if Icons then
+		Icons.Apply(mark, "check", Color3.fromRGB(10, 10, 12))
+	else
+		mark:Destroy()
+		mark = text(box, "✓", {
+			Color = Color3.fromRGB(10, 10, 12), Font = theme.FontBold, Size = 11,
+			XAlignment = Enum.TextXAlignment.Center, Size2 = UDim2.fromScale(1, 1),
+		}, theme)
+	end
 	text(button, title or "Checkbox", {
 		Color = theme.TextMuted, Size = 11,
 		Position = UDim2.fromOffset(22, 0), Height = 24,
 		Size2 = UDim2.new(1, -22, 0, 24),
 	}, theme)
 	local value = defaultValue == true
+	local markIsImage = mark:IsA("ImageLabel")
 	local function paint()
 		box.BackgroundColor3 = value and Color3.new(1, 1, 1) or theme.SurfaceMuted
-		mark.TextTransparency = value and 0 or 1
+		if markIsImage then
+			mark.ImageTransparency = value and 0 or 1
+		else
+			mark.TextTransparency = value and 0 or 1
+		end
 	end
 	paint()
 	button.MouseButton1Click:Connect(function()
@@ -461,12 +489,26 @@ function Components.Dropdown(context, parent, title, items, defaultValue, callba
 		Position = UDim2.fromOffset(10, 0), Height = 26,
 		Size2 = UDim2.new(1, -38, 0, 26),
 	}, theme)
-	text(box, "∨", {
-		Color = theme.TextMuted, Size = 12,
-		XAlignment = Enum.TextXAlignment.Right,
-		Position = UDim2.new(1, -26, 0, 0), Height = 26,
-		Size2 = UDim2.new(0, 16, 0, 26),
-	}, theme)
+	local chevron = create("ImageLabel", {
+		BackgroundTransparency = 1,
+		Image = (Icons and Icons.Resolve("chevron-down")) or "",
+		ImageColor3 = theme.TextMuted,
+		ScaleType = Enum.ScaleType.Fit,
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Size = UDim2.fromOffset(13, 13),
+		Position = UDim2.new(1, -17, 0.5, 0),
+	}, box)
+	if Icons then
+		Icons.Apply(chevron, "chevron-down", theme.TextMuted)
+	else
+		chevron:Destroy()
+		chevron = text(box, "∨", {
+			Color = theme.TextMuted, Size = 12,
+			XAlignment = Enum.TextXAlignment.Right,
+			Position = UDim2.new(1, -26, 0, 0), Height = 26,
+			Size2 = UDim2.new(0, 16, 0, 26),
+		}, theme)
+	end
 	local list = create("Frame", {
 		Visible = false,
 		BackgroundColor3 = theme.SurfaceMuted,
@@ -494,6 +536,9 @@ function Components.Dropdown(context, parent, title, items, defaultValue, callba
 	local function setOpen(next)
 		open = next
 		list.Visible = next
+		if chevron:IsA("ImageLabel") then
+			chevron.Rotation = next and 180 or 0
+		end
 		if next then
 			paint()
 		end
