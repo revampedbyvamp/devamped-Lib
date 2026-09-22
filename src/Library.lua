@@ -292,7 +292,8 @@ function Library:CreateWindow(options)
 		end
 
 		local function track(name, instance)
-			tab._searchables[#tab._searchables + 1] = { Name = name, Instance = instance }
+			local raw = (type(instance) == "table" and instance.Instance) or instance
+			tab._searchables[#tab._searchables + 1] = { Name = name, Instance = raw }
 			return instance
 		end
 
