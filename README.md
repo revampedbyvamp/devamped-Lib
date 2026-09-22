@@ -1,6 +1,6 @@
 # devamped-Lib
 
-Production-ready Roblox UI library. Drop-in, fully functional components, scale-safe on every device, smooth tween animations, draggable + resizable window, Light/Dark/custom themes, config save/load, search, tooltips, touch support, and stacking notifications.
+Dark "luminate"-style Roblox UI library: sidebar nav, gray panel cards, monochrome controls. Drop-in, fully functional components, scale-safe on every device, smooth tween animations, draggable + resizable window, Luminate/Light/Dark/custom themes, config save/load, opt-in search, tooltips, touch support, and stacking notifications.
 
 ## Install (executor, one line)
 
@@ -19,23 +19,22 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/revam
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/revampedbyvamp/devamped-Lib/main/Dist/DevampedLib.lua"))()
 
 local Window = Library:CreateWindow({
-	Title = "My Hub",
-	Theme = "Dark", -- "Light" | "Dark" | custom table
+	Title = "luminate",
+	Footer = "luminate.pw",
 	ToggleKey = Enum.KeyCode.RightShift,
+	-- Search = true, -- opt-in filter box above the content
+	-- Theme = "Light", -- "Luminate" (default) | "Light" | "Dark" | custom table
 })
 
-local Tab = Window:CreateTab({ Name = "Main" })
+local Tab = Window:CreateTab({ Name = "rage" })
+local Panel = Tab:CreatePanel() -- gray card, like the reference
 
-Tab:CreateButton({ Name = "Click Me", Callback = function()
+Panel:CreateCheckbox({ Name = "Checkbox" })
+Panel:CreateSlider({ Name = "Slider", Min = 0, Max = 100, Default = 0 })
+Panel:CreateDropdown({ Name = "Combo", Options = { "Item1", "Item2", "Item3" }, Default = "Item1" })
+Panel:CreateButton({ Name = "Button", Callback = function()
 	Window:Notify({ Title = "Hi", Content = "Button works!" })
 end })
-
-Tab:CreateToggle({ Name = "Enabled", Default = false, Flag = "enabled" })
-Tab:CreateSlider({ Name = "Speed", Min = 16, Max = 200, Default = 16, Flag = "speed" })
-Tab:CreateDropdown({ Name = "Weapon", Options = { "Sword", "Bow" }, Default = "Sword" })
-Tab:CreateTextbox({ Name = "Name", Placeholder = "Enter name..." })
-Tab:CreateKeybind({ Name = "Toggle", Default = Enum.KeyCode.RightShift })
-Tab:CreateColorPicker({ Name = "Color" })
 
 Window:SaveConfig("default")
 Window:LoadConfig("default")
@@ -45,10 +44,10 @@ See `Example.lua` for the full demo.
 
 ## Layout
 
-- `src/Theme.lua` — Light/Dark themes + `Theme.Create(nameOrTable)`
+- `src/Theme.lua` — Luminate (default) / Light / Dark + `Theme.Create(nameOrTable)`
 - `src/Animation.lua` — Tween, hover, press, fade, slide, spring, ripple
-- `src/Components.lua` — button, toggle, checkbox, slider, dropdown, textbox, keybind, color picker, label, section, column, tooltip
-- `src/Library.lua` — `CreateWindow`, tabs, notifications, search, drag/resize, responsive scale, config store
+- `src/Components.lua` — groupbox panel, button, toggle, checkbox, slider, dropdown/combo, textbox, keybind, color picker, label, section, column, tooltip
+- `src/Library.lua` — `CreateWindow`, sidebar tabs, panels, notifications, drag/resize, responsive scale, config store
 - `src/Init.lua` — Studio entry point
 - `Dist/DevampedLib.lua` — generated single-file bundle (edit `src/`, rebuild; do not hand-edit)
 
